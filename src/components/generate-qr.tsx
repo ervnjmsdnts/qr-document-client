@@ -8,6 +8,7 @@ import { Ghost, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import request from '../lib/axios';
 import { isAxiosError } from 'axios';
+import { getUser } from './actions';
 
 const schema = z.object({
   title: z.string().min(1),
@@ -21,13 +22,6 @@ const schema = z.object({
 });
 
 type Schema = z.infer<typeof schema>;
-
-const getUser = async (payload: { userId: string | undefined }) => {
-  const res = await request.get('/admin/get-user', {
-    params: { userId: payload.userId },
-  });
-  return res.data;
-};
 
 const generateQr = async (payload: Schema) => {
   const res = await request.post('/clerk/generate-qr', payload);
@@ -140,15 +134,23 @@ export default function GenerateQR() {
                   <option value='VOUCHER_BILLING'>Voucher and Billing</option>
                 </select>
               </div>
-              <button
-                disabled={queryLoading || mutateLoading}
-                className='p-2 text-white flex items-center justify-center disabled:opacity-50 bg-blue-700 rounded-md'>
-                {queryLoading || mutateLoading ? (
-                  <Loader2 className='w-5 h-5 animate-spin' />
-                ) : (
-                  'Generate'
-                )}
-              </button>
+              <div className='grid grid-cols-2 gap-2 w-full'>
+                <button
+                  type='button'
+                  className='p-2 bg-zinc-200 rounded-md'
+                  onClick={() => window.history.back()}>
+                  Cancel
+                </button>
+                <button
+                  disabled={queryLoading || mutateLoading}
+                  className='p-2 text-white flex items-center justify-center disabled:opacity-50 bg-blue-700 rounded-md'>
+                  {queryLoading || mutateLoading ? (
+                    <Loader2 className='w-5 h-5 animate-spin' />
+                  ) : (
+                    'Generate'
+                  )}
+                </button>
+              </div>
             </form>
           </div>
           <div className='w-px bg-zinc-200 mx-4' />
