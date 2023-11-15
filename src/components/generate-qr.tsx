@@ -3,10 +3,11 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { cn } from '../lib/utils';
 import { useMutation, useQuery } from 'react-query';
-import axios from 'axios';
 import { useParams } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Ghost, Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import request from '../lib/axios';
+import { isAxiosError } from 'axios';
 
 const schema = z.object({
   title: z.string().min(1),
@@ -22,20 +23,14 @@ const schema = z.object({
 type Schema = z.infer<typeof schema>;
 
 const getUser = async (payload: { userId: string | undefined }) => {
-  const res = await axios.get(
-    `https://qr-document-api.vercel.app/api/admin/get-user`,
-    {
-      data: { userId: payload.userId },
-    },
-  );
+  const res = await request.get('/admin/get-user', {
+    params: { userId: payload.userId },
+  });
   return res.data;
 };
 
 const generateQr = async (payload: Schema) => {
-  const res = await axios.post(
-    'https://qr-document-api.vercel.app/api/clerk/generate-qr',
-    payload,
-  );
+  const res = await request.post('/clerk/generate-qr', payload);
 
   return res.data;
 };
@@ -44,9 +39,16 @@ export default function GenerateQR() {
   const [qrCode, setQrCode] = useState<string | null>(null);
   const { userId } = useParams();
 
-  const { data: user, isLoading: queryLoading } = useQuery({
+  const {
+    data: user,
+    isLoading: queryLoading,
+    error,
+  } = useQuery({
+    queryKey: ['user', userId],
     queryFn: () => getUser({ userId }),
     enabled: !!userId,
+    refetchOnWindowFocus: false,
+    retry: false,
   });
 
   const { mutate, isLoading: mutateLoading } = useMutation(
@@ -71,6 +73,15 @@ export default function GenerateQR() {
     mutate({ ...data, departmentOrigin: user.department as string });
     form.reset();
   };
+
+  if (isAxiosError(error)) {
+    return (
+      <div className='flex flex-col text-zinc-600 justify-center items-center h-full'>
+        <Ghost className='w-8 h-8' />
+        <p className='text-2xl font-semibold'>{error.response?.data.error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className='max-w-4xl grid place-items-center h-full mx-auto'>
