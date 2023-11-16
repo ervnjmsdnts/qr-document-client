@@ -46,7 +46,7 @@ export default function GenerateQR() {
   });
 
   const { mutate, isLoading: mutateLoading } = useMutation(
-    (payload: Schema & { departmentOrigin: string }) => generateQr(payload),
+    (payload: Schema & { userId: string }) => generateQr(payload),
     {
       onSuccess: (data: { url: string }) => {
         setQrCode(data.url);
@@ -64,7 +64,7 @@ export default function GenerateQR() {
   });
 
   const submit = (data: Schema) => {
-    mutate({ ...data, departmentOrigin: user.department as string });
+    mutate({ ...data, userId: user.id as string });
     form.reset();
   };
 
