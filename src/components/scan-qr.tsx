@@ -69,7 +69,12 @@ export default function ScanQR() {
         ) : null}
         {scan ? (
           <QrReader
-            constraints={{ width: 300, height: 300, channelCount: 1 }}
+            constraints={{
+              width: 300,
+              height: 300,
+              channelCount: 1,
+              facingMode: { exact: 'environment' },
+            }}
             className='w-80 bg-zinc-200 h-80'
             scanDelay={1000}
             onResult={(result) => {
